@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_music/screens/home_screen.dart';
+import 'package:flutter_music/themes/app_theme.dart';
 
 void main() => runApp(MyApp());
 
@@ -7,10 +9,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      title: 'Flutter Music',
+      theme: AppTheme.buildLightTheme(),
+      debugShowCheckedModeBanner: false,
       home: HomePage(title: 'Flutter Music'),
     );
   }
@@ -28,13 +29,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Text("Hello"),
-      ),
-    );
+    return HomeScreen();
   }
 }
