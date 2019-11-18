@@ -70,7 +70,7 @@ class _LibraryFragmentState extends State<LibraryFragment> {
                             children: <Widget>[
                               Flexible(
                                 child: Container(
-                                  margin: EdgeInsets.only(bottom: 10.0),
+                                  margin: EdgeInsets.only(bottom: 25.0),
                                   child: Row(
                                     children: <Widget>[
                                       Padding(
