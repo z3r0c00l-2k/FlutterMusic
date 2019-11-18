@@ -10,10 +10,47 @@ class LibraryFragment extends StatefulWidget {
   _LibraryFragmentState createState() => _LibraryFragmentState();
 }
 
+enum PlayerState { stopped, playing, paused }
+
 class _LibraryFragmentState extends State<LibraryFragment> {
+  MusicFinder audioPlayer;
+  PlayerState playerState = PlayerState.stopped;
+
+  get isPlaying => playerState == PlayerState.playing;
+
+  get isPaused => playerState == PlayerState.paused;
+
+  @override
+  void initState() {
+    audioPlayer = new MusicFinder();
+  }
+
   Future<List<Song>> _getMusicList() async {
     List<Song> songs = await MusicFinder.allSongs();
     return songs;
+  }
+
+  Future _playLocal(String uri) async {
+    final result = await audioPlayer.play(uri, isLocal: true);
+    if (result == 1)
+      setState(() {
+        playerState = PlayerState.playing;
+      });
+  }
+
+  Future pause() async {
+    final result = await audioPlayer.pause();
+    if (result == 1) setState(() => playerState = PlayerState.paused);
+  }
+
+  void onComplete() {
+    setState(() => playerState = PlayerState.stopped);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    audioPlayer.stop();
   }
 
   @override
@@ -66,50 +103,55 @@ class _LibraryFragmentState extends State<LibraryFragment> {
                                     .toUpperCase()));
                           }
 
-                          return Row(
-                            children: <Widget>[
-                              Flexible(
-                                child: Container(
-                                  margin: EdgeInsets.only(bottom: 25.0),
-                                  child: Row(
-                                    children: <Widget>[
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 15.0),
-                                        child: albumArt,
-                                      ),
-                                      Flexible(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: <Widget>[
-                                            Text(
-                                              snapshot.data[index].title,
-                                              softWrap: false,
-                                              overflow: TextOverflow.fade,
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                            Text(
-                                              snapshot.data[index].artist,
-                                              style: TextStyle(
-                                                  fontSize: 12.0,
-                                                  color:
-                                                      AppColors.lightTextColor),
-                                            ),
-                                            Text(
-                                              _formatDuration(snapshot
-                                                  .data[index].duration),
-                                              style: TextStyle(fontSize: 12.0),
-                                            )
-                                          ],
+                          return InkWell(
+                            onTap: () => _playLocal(snapshot.data[index].uri),
+                            child: Row(
+                              children: <Widget>[
+                                Flexible(
+                                  child: Container(
+                                    margin: EdgeInsets.only(bottom: 25.0),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: 15.0),
+                                          child: albumArt,
                                         ),
-                                      )
-                                    ],
+                                        Flexible(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: <Widget>[
+                                              Text(
+                                                snapshot.data[index].title,
+                                                softWrap: false,
+                                                overflow: TextOverflow.fade,
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              ),
+                                              Text(
+                                                snapshot.data[index].artist,
+                                                style: TextStyle(
+                                                    fontSize: 12.0,
+                                                    color: AppColors
+                                                        .lightTextColor),
+                                              ),
+                                              Text(
+                                                _formatDuration(snapshot
+                                                    .data[index].duration),
+                                                style:
+                                                    TextStyle(fontSize: 12.0),
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           );
                         }),
                   );
