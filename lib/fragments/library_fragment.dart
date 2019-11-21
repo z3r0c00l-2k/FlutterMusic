@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:flute_music_player/flute_music_player.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_music/bloc/music_bloc.dart';
+import 'package:flutter_music/bloc/music_event.dart';
 import 'package:flutter_music/themes/colors.dart';
 
 class LibraryFragment extends StatefulWidget {
@@ -10,47 +13,18 @@ class LibraryFragment extends StatefulWidget {
   _LibraryFragmentState createState() => _LibraryFragmentState();
 }
 
-enum PlayerState { stopped, playing, paused }
-
 class _LibraryFragmentState extends State<LibraryFragment> {
-  MusicFinder audioPlayer;
-  PlayerState playerState = PlayerState.stopped;
-
-  get isPlaying => playerState == PlayerState.playing;
-
-  get isPaused => playerState == PlayerState.paused;
-
-  @override
-  void initState() {
-    audioPlayer = new MusicFinder();
-  }
-
   Future<List<Song>> _getMusicList() async {
     List<Song> songs = await MusicFinder.allSongs();
     return songs;
   }
 
-  Future _playLocal(String uri) async {
-    final result = await audioPlayer.play(uri, isLocal: true);
-    if (result == 1)
-      setState(() {
-        playerState = PlayerState.playing;
-      });
-  }
-
-  Future pause() async {
-    final result = await audioPlayer.pause();
-    if (result == 1) setState(() => playerState = PlayerState.paused);
-  }
-
-  void onComplete() {
-    setState(() => playerState = PlayerState.stopped);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    audioPlayer.stop();
+  Future _playLocal(Song song) async {
+    final musicBloc = BlocProvider.of<MusicBloc>(context);
+    musicBloc.add(StartPlayback(song));
+    musicBloc.musicPlayer.audioPlayer.setPositionHandler(
+            (Duration position) =>
+            musicBloc.add(PositionHandler(song, position)));
   }
 
   @override
@@ -104,7 +78,7 @@ class _LibraryFragmentState extends State<LibraryFragment> {
                           }
 
                           return InkWell(
-                            onTap: () => _playLocal(snapshot.data[index].uri),
+                            onTap: () => _playLocal(snapshot.data[index]),
                             child: Row(
                               children: <Widget>[
                                 Flexible(
