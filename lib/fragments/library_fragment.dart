@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_music/bloc/music_bloc.dart';
 import 'package:flutter_music/bloc/music_event.dart';
 import 'package:flutter_music/themes/colors.dart';
+import 'package:flutter_music/utils/sharedpref_helper.dart';
 import 'package:flutter_music/utils/sqflite_helper.dart';
 
 class LibraryFragment extends StatefulWidget {
@@ -15,23 +16,20 @@ class LibraryFragment extends StatefulWidget {
 }
 
 class _LibraryFragmentState extends State<LibraryFragment> {
-  SqfHelper sqfHelper = SqfHelper();
-
   Future<List<Song>> _getMusicList() async {
-    await sqfHelper.openDb();
     // Getting music list from provider if database is empty
     try {
-      if (await sqfHelper.musicLibraryIsEmpty()) {
+      if (await SqfHelper.musicLibraryIsEmpty()) {
         List<Song> songs = await MusicFinder.allSongs();
-        sqfHelper.addToLibrary(songs);
+        SqfHelper.addToLibrary(songs);
         return songs;
       } else {
-        List<Song> songs = await sqfHelper.getMusicLibrary();
+        List<Song> songs = await SqfHelper.getMusicLibrary();
         return songs;
       }
     } catch (e) {
       List<Song> songs = await MusicFinder.allSongs();
-      sqfHelper.addToLibrary(songs);
+      SqfHelper.addToLibrary(songs);
       return songs;
     }
   }
@@ -40,19 +38,15 @@ class _LibraryFragmentState extends State<LibraryFragment> {
     //Playing a local file
     final musicBloc = BlocProvider.of<MusicBloc>(context);
     musicBloc.add(StartPlayback(song));
+    SharedPrefHelper.addNowPlaying(song.id);
 
     // Adding position and complete listener
-    musicBloc.musicPlayer.audioPlayer.setPositionHandler(
-            (Duration position) =>
-            musicBloc.add(PositionHandler(song, position)));
+    musicBloc.musicPlayer.audioPlayer.setPositionHandler((Duration position) {
+      musicBloc.add(PositionHandler(song, position));
+      SharedPrefHelper.addCurrentPosition(position);
+    });
     musicBloc.musicPlayer.audioPlayer
         .setCompletionHandler(() => musicBloc.add(CompletionHandler(song)));
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    sqfHelper.closeDb();
   }
 
   @override

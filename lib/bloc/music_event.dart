@@ -14,6 +14,15 @@ class StartPlayback extends MusicEvent {
   List<Object> get props => [song];
 }
 
+class LoadLastPlayed extends MusicEvent {
+  final Song song;
+
+  LoadLastPlayed(this.song);
+
+  @override
+  List<Object> get props => [song];
+}
+
 class ResumePlayback extends MusicEvent {
   final Song song;
   final Duration position;

@@ -36,6 +36,9 @@ class MusicBloc extends Bloc<MusicEvent, MusicState> {
     } else if (event is CompletionHandler) {
       yield PlayingMusicState(event.song, true, event.song.duration,
           Duration(milliseconds: event.song.duration));
+    } else if (event is LoadLastPlayed) {
+      yield PausedMusicState(
+          event.song, false, event.song.duration, Duration(seconds: 1));
     }
   }
 }

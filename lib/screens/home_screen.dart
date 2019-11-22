@@ -1,3 +1,4 @@
+import 'package:flute_music_player/flute_music_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_music/bloc/bloc.dart';
@@ -7,6 +8,8 @@ import 'package:flutter_music/fragments/fav_fragment.dart';
 import 'package:flutter_music/fragments/library_fragment.dart';
 import 'package:flutter_music/fragments/search_fragment.dart';
 import 'package:flutter_music/themes/colors.dart';
+import 'package:flutter_music/utils/sharedpref_helper.dart';
+import 'package:flutter_music/utils/sqflite_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -18,6 +21,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Initializing Bloc
   final MusicBloc musicBloc = MusicBloc();
+
+  @override
+  void initState() {
+    super.initState();
+    _getLastPlayed();
+  }
+
+  void _getLastPlayed() async {
+    Map<String, int> lastPlayed = await SharedPrefHelper.getLastPlayed();
+    if (lastPlayed['nowPlaying'] != null) {
+      Song lastPlayedSong =
+      await SqfHelper.getSongById(lastPlayed['nowPlaying']);
+      musicBloc.add(LoadLastPlayed(lastPlayedSong));
+    }
+  }
 
   void _selectedTab(int index) {
     setState(() {
