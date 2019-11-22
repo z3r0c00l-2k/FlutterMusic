@@ -17,6 +17,7 @@ class MusicBloc extends Bloc<MusicEvent, MusicState> {
     MusicEvent event,
   ) async* {
     if (event is StartPlayback) {
+      // Stop current playing song and playing new one
       musicPlayer.stop();
       musicPlayer.playLocal(event.song.uri);
       yield PlayingMusicState(

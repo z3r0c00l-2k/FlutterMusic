@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_music/bloc/music_bloc.dart';
 import 'package:flutter_music/bloc/music_event.dart';
 import 'package:flutter_music/themes/colors.dart';
+import 'package:flutter_music/utils/sqflite_helper.dart';
 
 class LibraryFragment extends StatefulWidget {
   @override
@@ -14,19 +15,44 @@ class LibraryFragment extends StatefulWidget {
 }
 
 class _LibraryFragmentState extends State<LibraryFragment> {
+  SqfHelper sqfHelper = SqfHelper();
+
   Future<List<Song>> _getMusicList() async {
-    List<Song> songs = await MusicFinder.allSongs();
-    return songs;
+    await sqfHelper.openDb();
+    // Getting music list from provider if database is empty
+    try {
+      if (await sqfHelper.musicLibraryIsEmpty()) {
+        List<Song> songs = await MusicFinder.allSongs();
+        sqfHelper.addToLibrary(songs);
+        return songs;
+      } else {
+        List<Song> songs = await sqfHelper.getMusicLibrary();
+        return songs;
+      }
+    } catch (e) {
+      List<Song> songs = await MusicFinder.allSongs();
+      sqfHelper.addToLibrary(songs);
+      return songs;
+    }
   }
 
   Future _playLocal(Song song) async {
+    //Playing a local file
     final musicBloc = BlocProvider.of<MusicBloc>(context);
     musicBloc.add(StartPlayback(song));
+
+    // Adding position and complete listener
     musicBloc.musicPlayer.audioPlayer.setPositionHandler(
             (Duration position) =>
             musicBloc.add(PositionHandler(song, position)));
     musicBloc.musicPlayer.audioPlayer
         .setCompletionHandler(() => musicBloc.add(CompletionHandler(song)));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    sqfHelper.closeDb();
   }
 
   @override
@@ -50,7 +76,7 @@ class _LibraryFragmentState extends State<LibraryFragment> {
           child: FutureBuilder(
             future: _getMusicList(),
             builder:
-                // ignore: missing_return
+            // ignore: missing_return
                 (BuildContext context, AsyncSnapshot<List<Song>> snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.none:
@@ -96,7 +122,7 @@ class _LibraryFragmentState extends State<LibraryFragment> {
                                         Flexible(
                                           child: Column(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                             children: <Widget>[
                                               Text(
                                                 snapshot.data[index].title,
@@ -104,7 +130,7 @@ class _LibraryFragmentState extends State<LibraryFragment> {
                                                 overflow: TextOverflow.fade,
                                                 style: TextStyle(
                                                     fontWeight:
-                                                        FontWeight.w500),
+                                                    FontWeight.w500),
                                               ),
                                               Text(
                                                 snapshot.data[index].artist,
@@ -117,7 +143,7 @@ class _LibraryFragmentState extends State<LibraryFragment> {
                                                 _formatDuration(snapshot
                                                     .data[index].duration),
                                                 style:
-                                                    TextStyle(fontSize: 12.0),
+                                                TextStyle(fontSize: 12.0),
                                               )
                                             ],
                                           ),
@@ -139,6 +165,7 @@ class _LibraryFragmentState extends State<LibraryFragment> {
     );
   }
 
+  // Format duration of music from int to Duration
   String _formatDuration(int dur) {
     Duration duration = Duration(milliseconds: dur);
     String twoDigits(int n) {

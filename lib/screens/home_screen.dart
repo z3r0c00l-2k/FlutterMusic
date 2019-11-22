@@ -15,6 +15,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _lastSelected = 0;
+
+  // Initializing Bloc
   final MusicBloc musicBloc = MusicBloc();
 
   void _selectedTab(int index) {

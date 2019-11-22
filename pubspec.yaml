@@ -26,6 +26,7 @@ dependencies:
   flute_music_player:
   flutter_bloc: ^2.0.1
   equatable: ^1.0.0
+  sqflite: ^1.1.7+2
 
 dev_dependencies:
   flutter_test:
