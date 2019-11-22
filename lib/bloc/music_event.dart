@@ -45,10 +45,10 @@ class PositionHandler extends MusicEvent {
 }
 
 class CompletionHandler extends MusicEvent {
-  final Duration position;
+  final Song song;
 
-  CompletionHandler(this.position);
+  CompletionHandler(this.song);
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [song];
 }

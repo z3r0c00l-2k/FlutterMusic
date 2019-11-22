@@ -113,8 +113,13 @@ class _HomeScreenState extends State<HomeScreen> {
     var tooltip = "Play";
     var icon = Icon(Icons.play_arrow);
     if (state is PlayingMusicState) {
-      tooltip = "Pause";
-      icon = Icon(Icons.pause);
+      if (state.duration == state.position.inMilliseconds) {
+        tooltip = "Play";
+        icon = Icon(Icons.play_arrow);
+      } else {
+        tooltip = "Pause";
+        icon = Icon(Icons.pause);
+      }
     }
     return FloatingActionButton(
       onPressed: () {

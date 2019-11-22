@@ -16,8 +16,6 @@ class MusicBloc extends Bloc<MusicEvent, MusicState> {
   Stream<MusicState> mapEventToState(
     MusicEvent event,
   ) async* {
-    musicPlayer.audioPlayer.setPositionHandler((Duration position) => {});
-
     if (event is StartPlayback) {
       musicPlayer.stop();
       musicPlayer.playLocal(event.song.uri);
@@ -34,6 +32,9 @@ class MusicBloc extends Bloc<MusicEvent, MusicState> {
     } else if (event is PositionHandler) {
       yield PlayingMusicState(
           event.song, true, event.song.duration, event.position);
+    } else if (event is CompletionHandler) {
+      yield PlayingMusicState(event.song, true, event.song.duration,
+          Duration(milliseconds: event.song.duration));
     }
   }
 }

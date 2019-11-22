@@ -25,6 +25,8 @@ class _LibraryFragmentState extends State<LibraryFragment> {
     musicBloc.musicPlayer.audioPlayer.setPositionHandler(
             (Duration position) =>
             musicBloc.add(PositionHandler(song, position)));
+    musicBloc.musicPlayer.audioPlayer
+        .setCompletionHandler(() => musicBloc.add(CompletionHandler(song)));
   }
 
   @override
