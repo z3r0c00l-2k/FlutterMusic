@@ -32,7 +32,6 @@ class SqfHelper {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     });
-    _closeDb();
   }
 
   static Future<List<Song>> getMusicLibrary() async {
