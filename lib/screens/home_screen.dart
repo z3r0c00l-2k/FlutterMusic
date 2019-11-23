@@ -1,8 +1,12 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flute_music_player/flute_music_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_music/bloc/bloc.dart';
 import 'package:flutter_music/components/bootom_nav_bar.dart';
+import 'package:flutter_music/components/bottom_now_playing.dart';
 import 'package:flutter_music/fragments/explore_fragment.dart';
 import 'package:flutter_music/fragments/fav_fragment.dart';
 import 'package:flutter_music/fragments/library_fragment.dart';
@@ -31,14 +35,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void _getLastPlayed() async {
     Map<String, int> lastPlayed = await SharedPrefHelper.getLastPlayed();
     // On first try we're getting null, that's why i ran this code two times
-    if (lastPlayed != null) {
+    if (lastPlayed['nowPlaying'] == null) {
+      lastPlayed = await SharedPrefHelper.getLastPlayed();
       if (lastPlayed['nowPlaying'] < 0) {
         Song lastPlayedSong =
         await SqfHelper.getSongById(lastPlayed['nowPlaying']);
         musicBloc.add(LoadLastPlayed(lastPlayedSong));
       }
     } else {
-      lastPlayed = await SharedPrefHelper.getLastPlayed();
       if (lastPlayed['nowPlaying'] < 0) {
         Song lastPlayedSong =
         await SqfHelper.getSongById(lastPlayed['nowPlaying']);
@@ -127,8 +131,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  Container(
-                    child: currentFragement,
+                  Stack(
+                    children: <Widget>[
+                      currentFragement,
+                      ((state is PlayingMusicState || state is PausedMusicState)
+                          ? _buildNowPlayingBottomBar(state)
+                          : Container(width: 0, height: 0))
+                    ],
                   )
                 ],
               ),
@@ -165,6 +174,38 @@ class _HomeScreenState extends State<HomeScreen> {
       child: icon,
       elevation: 2.0,
     );
+  }
+
+  Widget _buildNowPlayingBottomBar(MusicState state) {
+    String imageUrl;
+    var title;
+    var artist;
+    double position;
+    double duration;
+    if (state is PlayingMusicState) {
+      imageUrl = state.song.albumArt;
+      title = state.song.title;
+      artist = state.song.artist;
+      position = state.position.inMilliseconds.toDouble();
+      duration = state.song.duration.toDouble();
+    } else if (state is PausedMusicState) {
+      imageUrl = state.song.albumArt;
+      title = state.song.title;
+      artist = state.song.artist;
+      position = state.position.inMilliseconds.toDouble();
+      duration = state.song.duration.toDouble();
+    } else {
+      imageUrl = null;
+    }
+    ImageProvider albumArt;
+
+    if (imageUrl != null) {
+      albumArt = FileImage(File(imageUrl));
+    } else {
+      albumArt = AssetImage('images/logo.png');
+    }
+
+    return BottomNowPlaying(title, artist, position, duration, albumArt);
   }
 
   @override
