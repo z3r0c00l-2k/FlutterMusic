@@ -30,10 +30,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _getLastPlayed() async {
     Map<String, int> lastPlayed = await SharedPrefHelper.getLastPlayed();
-    if (lastPlayed['nowPlaying'] != null) {
-      Song lastPlayedSong =
-      await SqfHelper.getSongById(lastPlayed['nowPlaying']);
-      musicBloc.add(LoadLastPlayed(lastPlayedSong));
+    // On first try we're getting null, that's why i ran this code two times
+    if (lastPlayed != null) {
+      if (lastPlayed['nowPlaying'] < 0) {
+        Song lastPlayedSong =
+        await SqfHelper.getSongById(lastPlayed['nowPlaying']);
+        musicBloc.add(LoadLastPlayed(lastPlayedSong));
+      }
+    } else {
+      lastPlayed = await SharedPrefHelper.getLastPlayed();
+      if (lastPlayed['nowPlaying'] < 0) {
+        Song lastPlayedSong =
+        await SqfHelper.getSongById(lastPlayed['nowPlaying']);
+        musicBloc.add(LoadLastPlayed(lastPlayedSong));
+      }
     }
   }
 
